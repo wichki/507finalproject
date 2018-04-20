@@ -23,9 +23,9 @@ next(poverty_csv, None)
 unemployment_csv = csv.reader(f2)
 next(unemployment_csv, None)
 
-API_HOST = 'https://api.yelp.com'
-SEARCH_PATH = '/v3/businesses/search'
-BUSINESS_PATH = '/v3/businesses/'
+# API_HOST = 'https://api.yelp.com'
+# SEARCH_PATH = '/v3/businesses/search'
+# BUSINESS_PATH = '/v3/businesses/'
 
 try:
     conn = sqlite3.connect(DBNAME)
@@ -42,7 +42,6 @@ cur.execute(statement)
 statement = '''
     DROP TABLE IF EXISTS 'Unemployment';
 '''
-
 cur.execute(statement)
 conn.commit()
 
@@ -176,28 +175,56 @@ except:
 
 class Yelp_Listing():
     def __init__(self, init_tuple):
-        self.name = init_tuple[0]
-        self.something_else = init_tuple[1]
+        try:
+            self.name = init_tuple[0]
+            self.url = init_tuple[1]
+            self.category1 = init_tuple[2]
+            self.category2 = init_tuple[3]
+            self.category3 = init_tuple[4]
+            self.latitude = init_tuple[5]
+            self.longitude = init_tuple[6]
+            self.address1 = init_tuple[7]
+            self.address2 = init_tuple[8]
+            self.address3 = init_tuple[9]
+            self.city = init_tuple[10]
+            self.zip_code = init_tuple[11]
+            self.state = init_tuple[12]
+            self.country = init_tuple[13]
+        except:
+            self.name = ""
+            self.url = ""
+            self.category1 = ""
+            self.category2 = ""
+            self.category3 = ""
+            self.latitude = ""
+            self.longitude = ""
+            self.address1 = ""
+            self.address2 = ""
+            self.address3 = ""
+            self.city = ""
+            self.zip_code = ""
+            self.state = ""
+            self.country = ""
 
+    def __str__(self):
+        return "{} {} {} {} {} {} {} {} {} {} {} {} {} {}".format(self.name, self.url, self.category1, self.category2, self.category3, self.latitude, self.longitude, self.address1, self.address2, self.address3, self.city, self.zip_code, self.state, self.country)
 
-def pingYelp(search_term, location, offset=None):
+def pingYelp(location, offset=None):
     baseURL = "https://api.yelp.com/v3/businesses/search"
     header = {"Authorization": "Bearer {}".format(API_KEY)}
     params = {}
-    params["term"] = search_term
+    params["term"] = "grocery stores"
     params["location"] = location
 
     #First Request
     params["limit"] = 50
     params["offset"] = offset
-    unique_id = baseURL + "?term=" + search_term + "?location=" + location + "?offset=" + str(params["offset"])
+    unique_id = baseURL + "?term=" + params["term"] + "?location=" + location + "?offset=" + str(params["offset"])
     # print(unique_id)
 
     if unique_id in cache_diction:
-        # print("Getting cached data...")
         return cache_diction[unique_id]
     else:
-        # print("Making a request for new data...")
         response = requests.get(baseURL, headers=header, params=params).text
         cache_diction[unique_id] = json.loads(response)
         dumped_json_cache = json.dumps(cache_diction, indent=2)
@@ -288,12 +315,11 @@ def populate_table(results):
         cur.execute(statement, insertion)
         conn.commit()
 
-
 def process_command(command):
 
-    commands = ["map", "linechart", "exit", "help"]
+    commands = ["map", "linechart", "exit", "help", "yelp"]
 
-    parameters = ["national", "state"]
+    parameters = ["national", "state", "county"]
 
     subparameters = ["unemployment", "poverty"]
 
@@ -339,6 +365,7 @@ def process_command(command):
     # Splitting the command
     parse_input = command.split()
     # print(parse_input)
+    # print(len(parse_input))
     for i in parse_input:
         if i in commands:
             processed_command["command"] = i
@@ -356,6 +383,13 @@ def process_command(command):
             processed_command["county"] = parse_input[word_before]
         elif i == "county" and len(parse_input) > 6:
             # print(parse_input.index(i))
+            two_word_county = parse_input[3] + " " + parse_input[4]
+            # print(two_word_county)
+            processed_command["county"] = two_word_county
+        elif len(parse_input) == 5:
+            word_before = parse_input.index(i)
+            processed_command["county"] = parse_input[word_before]
+        elif len(parse_input) == 6:
             two_word_county = parse_input[3] + " " + parse_input[4]
             # print(two_word_county)
             processed_command["county"] = two_word_county
@@ -612,21 +646,81 @@ def process_command(command):
             py.plot(data, filename='basic-line')
             return results
 
-# process_command("linechart state ca sacramento county 2007")
+    # YELP COUNTY
+    if processed_command["command"] == "yelp":
+        # if  processed_command["parameter"] == "county":
+            # print("correct command")
+            # yelp_county = "'grocery stores'" + "," + "'" + processed_command["county"] + "'"
+            # print(yelp_county)
+
+            # str1 = "grocery stores, " + yelp_county
+            # print(str1)
+
+            results = pingYelp(processed_command["county"])
+            # print(results)
+
+            # print("'grocery stores'" + "," + "'" + processed_command["county"] + "'")
+
+            populate_table(results)
+
+            sql_select = "SELECT Name, URL, Category1, Category2, Category2, Latitude, Longitude, Address1, Address2, Address3, City, Zip_Code, State, Country "
+            sql_from = "FROM Yelp "
+            sql_join = ""
+            sql_on = ""
+            sql_where = "WHERE City="
+            sql_where += "'" + processed_command["county"] + "' "
+            sql_group = ""
+            sql_having = ""
+            sql_order = ""
+
+            sql_limit = ""
+
+            statement = sql_select + sql_from + sql_join + sql_on + sql_where + sql_group + sql_having + sql_order + sql_limit
+            # print(statement)
+            results1 = cur.execute(statement).fetchall()
+            # print(results1)
+
+            yelp_listings = []
+            for i in results1:
+                # print(len(i))
+                yelp_listings.append(Yelp_Listing(i))
+
+            # print(yelp_listings)
+            # for i in yelp_listings:
+            #     print(i.category2)
+
+            grocery = 0
+            farmersmarket = 0
+            market = 0
+            healthmarkets = 0
+            for i in yelp_listings:
+                if i.category1 == "grocery" or i.category2 == "grocery" or i.category3 == "grocery":
+                    grocery += 1
+                if i.category1 == "farmersmarket" or i.category2 == "farmersmarket" or i.category3 == "farmersmarket":
+                    farmersmarket += 1
+                if i.category1 == "market" or i.category2 == "market" or i.category3 == "market":
+                    market += 1
+                if i.category1 == "healthmarkets" or i.category2 == "healthmarkets" or i.category3 == "healthmarkets":
+                    healthmarkets += 1
+
+            labels = ['Grocery Stores','Farmers Market','Markets', 'Health Markets']
+            values = [grocery, farmersmarket, market, healthmarkets]
+            colors = ['#FEBFB3', '#E1396C', '#96D38C', "grey"]
+
+            trace = go.Pie(labels=labels, values=values,
+                           hoverinfo='label+percent', textinfo='value',
+                           textfont=dict(size=20),
+                           marker=dict(colors=colors,
+                                       line=dict(color='#000000', width=2)))
+            # print(grocery, farmersmarket, market, healthmarkets)
+            py.plot([trace], filename='styled_pie_chart')
+            return results
 
 def load_help_text():
     with open('help.txt') as f:
         return f.read()
 
 def interactive_prompt():
-    # valid_commands = ["map", "linechart"]
-    # valid_parameters = []
-    # states = ["al", "ak", "az", "ar", "ca", "co", "ct", "dc", "de", "fl", "ga",
-    #           "hi", "id", "il", "in", "ia", "ks", "ky", "la", "me", "md",
-    #           "ma", "mi", "mn", "ms", "mo", "mt", "ne", "nv", "nh", "nj",
-    #           "nm", "ny", "nc", "nd", "oh", "ok", "or", "pa", "ri", "sc",
-    #           "sd", "tn", "tx", "ut", "vt", "va", "wa", "wv", "wi", "wy"]
-
     help_text = load_help_text()
     response = ''
     while response != 'exit':
@@ -642,163 +736,14 @@ def interactive_prompt():
             pass
         else:
             print("Command not recognized: ", response)
-
-        # if response == 'help':
-        #     print(help_text)
-        #     continue
-
-# results1 = pingYelp("farmer's market", "washtenaw")
-# results2 = pingYelp("farmer's market", "washtenaw", 51)
 #
+# results1 = pingYelp("farmer's market", "washtenaw")
+# results2 = pingYelp("farmer's market")
+
 # populate_table(results1)
 # populate_table(results2)
-#
-# # TESTING SQLITE STATEMENTS FOR TABLES
-# sql_select = "SELECT Name, Latitude, Longitude "
-# sql_from = "FROM Yelp "
-# sql_join = ""
-# sql_on = ""
-# sql_where = "WHERE Category1 = 'farmersmarket' or Category1 = 'grocery' or Category2 = 'farmersmarket' or Category2 = 'grocery' or Category3= 'farmersmarket' or Category3 ='grocery'"
-# sql_group = ""
-# sql_having = ""
-# sql_order = ""
-# sql_limit = ""
-#
-# statement = sql_select + sql_from + sql_join + sql_on + sql_where + sql_group + sql_having + sql_order + sql_limit
-# # print(statement)
-#
-# results = cur.execute(statement).fetchall()
-# # print(results)
-#
-#
-# # PLOTTING THINGS
-#
-# business_names1 = []
-# lat_vals1 = []
-# lng_vals1 = []
-# count=0
-#
-# for i in results:
-#     # print(i)
-#     business_names1.append(i[0])
-#     lat_vals1.append(i[1])
-#     lng_vals1.append(i[2])
-#     count += 1
-#
-# # print(count)
-#
-# min_lat = 10000
-# max_lat = -10000
-# min_lon = 10000
-# max_lon = -10000
-#
-# for str_v in lat_vals1:
-#     v = float(str_v)
-#     if v < min_lat:
-#         min_lat = v
-#     if v > max_lat:
-#         max_lat = v
-# for str_v in lng_vals1:
-#     v = float(str_v)
-#     if v < min_lon:
-#         min_lon = v
-#     if v > max_lon:
-#         max_lon = v
-#
-# lat_axis = [min_lat, max_lat]
-# lon_axis = [min_lon, max_lon]
-#
-# center_lat = (max_lat+min_lat) / 2
-# center_lon = (max_lon+min_lon) / 2
-#
-# max_range = max(abs(max_lat - min_lat), abs(max_lon - min_lon))
-# padding = max_range * .10
-# lat_axis = [min_lat - padding, max_lat + padding]
-# lon_axis = [min_lon - padding, max_lon + padding]
-#
-# fips = ['06021', '06023', '06027',
-#         '06029', '06033', '06059',
-#         '06047', '06049', '06051',
-#         '06055', '06061']
-#
-# trace1 = dict(
-# type = "scattergeo",
-# locationmode = "USA-states",
-# lon = lng_vals1,
-# lat = lat_vals1,
-# text = business_names1,
-# mode = "markers",
-# marker = dict(
-#     size = 12,
-#     opacity = 0.8,
-#     reversescale = True,
-#     autocolorscale = False,
-#     symbol = "square",
-#     color = "blue")
-# )
-#
-# # trace2 = dict(
-# # type = ""
-# # )
-#
-# values = range(11)
-#
-# data = [trace1]
-#
-# center_lat = (max_lat+min_lat) / 2
-# center_lon = (max_lon+min_lon) / 2
-#
-# layout = dict(
-# title = 'Nearby Places',
-# geo = dict(
-#     scope='usa',
-#     projection=dict( type='albers usa' ),
-#     showland = True,
-#     landcolor = "rgb(250, 250, 250)",
-#     subunitcolor = "rgb(100, 217, 217)",
-#     countrycolor = "rgb(217, 100, 217)",
-#     lataxis = {'range': lat_axis},
-#     lonaxis = {'range': lon_axis},
-#     center = {'lat': center_lat, 'lon': center_lon },
-#     countrywidth = 3,
-#     subunitwidth = 3
-#     ),
-# )
-#
-# # fig = dict(data=data, layout=layout, fips=fips)
-# # fig = ff.create_choropleth(fips=fips, data=data, values=values)
-# # py.plot(fig, validate=False)
-#
-# # print(business_names, latitudes, longitudes)
-#
-# # FIPS_List = []
-# # States_List = []
-# # Counties_List = []
-# # Unemployment_Rate_2007 = []
-# # results = cur.execute(statement).fetchall()
-# # for i in results:
-# #     FIPS_List.append(i[0])
-# #     States_List.append(i[1])
-# #     Counties_List.append(i[2][:-4])
-# #     Unemployment_Rate_2007.append(i[3])
-#
-# # get total number
-# # total = 0
-# # number = 0
-# # for i in Unemployment_Rate_2007:
-# #     if i == "":
-# #         pass
-# #     else:
-# #         total += float(int(i))
-# #         number += 1
-# #
-# # average_unemployment_2007 = total/number
-# # print(average_unemployment_2007)
-#
 
-# print(len(process_command("map state az unemployment 2013")))
-# process_command("map national unemployment 2012")
-
+# process_command("yelp state wa Seattle county")
 
 if __name__=="__main__":
     interactive_prompt()
