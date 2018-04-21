@@ -45,6 +45,41 @@ statement = '''
 cur.execute(statement)
 conn.commit()
 
+class Yelp_Listing():
+    def __init__(self, init_tuple):
+        try:
+            self.name = init_tuple[0]
+            self.url = init_tuple[1]
+            self.category1 = init_tuple[2]
+            self.category2 = init_tuple[3]
+            self.category3 = init_tuple[4]
+            self.latitude = init_tuple[5]
+            self.longitude = init_tuple[6]
+            self.address1 = init_tuple[7]
+            self.address2 = init_tuple[8]
+            self.address3 = init_tuple[9]
+            self.city = init_tuple[10]
+            self.zip_code = init_tuple[11]
+            self.state = init_tuple[12]
+            self.country = init_tuple[13]
+        except:
+            self.name = ""
+            self.url = ""
+            self.category1 = ""
+            self.category2 = ""
+            self.category3 = ""
+            self.latitude = ""
+            self.longitude = ""
+            self.address1 = ""
+            self.address2 = ""
+            self.address3 = ""
+            self.city = ""
+            self.zip_code = ""
+            self.state = ""
+            self.country = ""
+
+    def __str__(self):
+        return "{} {} {} {} {} {} {} {} {} {} {} {} {} {}".format(self.name, self.url, self.category1, self.category2, self.category3, self.latitude, self.longitude, self.address1, self.address2, self.address3, self.city, self.zip_code, self.state, self.country)
 
 # Create Poverty Table
 statement = """
@@ -172,42 +207,6 @@ try:
     cache_file.close()
 except:
     cache_diction = {}
-
-class Yelp_Listing():
-    def __init__(self, init_tuple):
-        try:
-            self.name = init_tuple[0]
-            self.url = init_tuple[1]
-            self.category1 = init_tuple[2]
-            self.category2 = init_tuple[3]
-            self.category3 = init_tuple[4]
-            self.latitude = init_tuple[5]
-            self.longitude = init_tuple[6]
-            self.address1 = init_tuple[7]
-            self.address2 = init_tuple[8]
-            self.address3 = init_tuple[9]
-            self.city = init_tuple[10]
-            self.zip_code = init_tuple[11]
-            self.state = init_tuple[12]
-            self.country = init_tuple[13]
-        except:
-            self.name = ""
-            self.url = ""
-            self.category1 = ""
-            self.category2 = ""
-            self.category3 = ""
-            self.latitude = ""
-            self.longitude = ""
-            self.address1 = ""
-            self.address2 = ""
-            self.address3 = ""
-            self.city = ""
-            self.zip_code = ""
-            self.state = ""
-            self.country = ""
-
-    def __str__(self):
-        return "{} {} {} {} {} {} {} {} {} {} {} {} {} {}".format(self.name, self.url, self.category1, self.category2, self.category3, self.latitude, self.longitude, self.address1, self.address2, self.address3, self.city, self.zip_code, self.state, self.country)
 
 def pingYelp(location, offset=None):
     baseURL = "https://api.yelp.com/v3/businesses/search"
