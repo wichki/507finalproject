@@ -19,7 +19,7 @@ map
 linechart
 	Description: Creates a line chart of county, state and national unemployment rates 	for a specific county for years that span 2007-2013.
 
-	Example commands: "linechart state ca san francisco county" or "linechart 		state mi washtenaw county"
+	Example commands: "linechart state ca san francisco" or "linechart 		state mi washtenaw"
 
 	Options:
 	

@@ -723,7 +723,7 @@ def interactive_prompt():
     help_text = load_help_text()
     response = ''
     while response != 'exit':
-        response = input('Enter a command: ')
+        response = input('Enter a command (type help for more info): ')
         info = process_command(response)
 
         if response == "exit":
