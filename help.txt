@@ -1,0 +1,33 @@
+Commands available:
+
+map
+	Description: Creates a country or state chloropleth map.
+
+	Example commands: "map national unemployment 2013", "map national poverty" or "map 		state ca unemployment 2009"
+
+	Options:
+		* national | state
+		Description: Specifies a country or state within which to limit the
+		results.
+
+		* unemployment | poverty [poverty information only available for 2016]
+		Description: Specifies whether to sort by rating or cocoa percentage
+
+		* year [available years: 2007-2013]
+		Description: Specifies which year to display.
+
+linechart
+	Description: Creates a line chart of county, state and national unemployment rates 	for a specific county for years that span 2007-2013.
+
+	Example commands: "linechart state ca san francisco county" or "linechart 		state mi washtenaw county"
+
+	Options:
+	
+		* state [e.g. az, mi or ca]
+		Description: Specifies which state the county is in.
+
+		* county [e.g. washtenaw, san francisco, los angeles]
+		Description: Specifies which county information to display.
+
+yelp
+	Description: Creates a pie chart of grocery stores, farmer's markets, 

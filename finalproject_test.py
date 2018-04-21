@@ -23,11 +23,11 @@ class TestCSVImport(unittest.TestCase):
         self.assertTrue(test4[1][1], "Abbeville County, SC")
         self.assertTrue(test4[-1][1], "York County, SC")
 
+class TestDatabase(unittest.TestCase):
     def test_database(self):
-        # pass
-        self.assertEqual(len(process_command("linechart state ca sacramento county 2007")), 1)
-        self.assertEqual(len(process_command("linechart state mi washtenaw county 2007")), 1)
-        self.assertEqual(len(process_command("linechart state ca los angeles county 2007")), 1)
+        self.assertEqual(len(process_command("linechart state ca san francisco")), 1)
+        self.assertEqual(len(process_command("linechart state mi washtenaw")), 1)
+        self.assertEqual(len(process_command("linechart state ca san diego")), 1)
         self.assertEqual(len(process_command("map state ca unemployment 2013")), 59)
         self.assertEqual(len(process_command("map state az unemployment 2013")), 16)
         self.assertEqual(len(process_command("map state fl unemployment 2013")), 68)
@@ -43,7 +43,6 @@ class Yelp_Function(unittest.TestCase):
             pingYelp("markets", "94012", offset=51)
         except:
             self.fail()
-
 
 if __name__ == '__main__':
     unittest.main(verbosity=2)

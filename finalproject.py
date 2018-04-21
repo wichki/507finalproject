@@ -343,15 +343,6 @@ def process_command(command):
          "vt":'Vermont',"va":'Virginia',"wa":'Washington',"wv":'West Virginia',
          "wi":'Wisconsin',"wy":'Wyoming'}
 
-    # county information
-
-    sql_select = "SELECT Area_name "
-    sql_from = "FROM Unemployment "
-
-    statement = sql_select + sql_from
-    # print(statement)
-    results = cur.execute(statement).fetchall()
-
     processed_command = {
         "command": "",
         "parameter": "",
@@ -386,14 +377,26 @@ def process_command(command):
             two_word_county = parse_input[3] + " " + parse_input[4]
             # print(two_word_county)
             processed_command["county"] = two_word_county
-        elif len(parse_input) == 5:
-            word_before = parse_input.index(i)
-            processed_command["county"] = parse_input[word_before]
-        elif len(parse_input) == 6:
+        elif processed_command["command"] == "linechart" and len(parse_input) == 5:
             two_word_county = parse_input[3] + " " + parse_input[4]
             # print(two_word_county)
             processed_command["county"] = two_word_county
+            # print("got it")
 
+        elif processed_command["command"] == "linechart" and len(parse_input) == 4:
+            word_before = parse_input[-1]
+            # print(word_before)
+            processed_command["county"] = word_before
+            # print("this section")
+
+        if processed_command["command"] == "yelp" and len(parse_input) == 5:
+            two_word_county = parse_input[3] + " " + parse_input[4]
+            processed_command["county"] = two_word_county
+        elif processed_command["command"] == "yelp" and len(parse_input) == 4:
+            one_word_county = parse_input[-1]
+            processed_command["county"] = one_word_county
+
+    # print(parse_input)
     # print(processed_command)
 
     # MAP NATIONAL UNEMPLOYMENT COMMAND
@@ -495,7 +498,7 @@ def process_command(command):
                 colorscale=colorscale,
                 show_state_data=False,
                 show_hover=True, centroid_marker={'opacity': 0},
-                asp=2.9, title='USA by Unemployment % 2016',
+                asp=2.9, title='USA by Poverty % 2016',
                 legend_title='% unemployed'
             )
             py.plot(fig, filename='choropleth_full_usa')
@@ -558,7 +561,7 @@ def process_command(command):
             return results
 
 
-    # MAP LINECHART COMMAND
+    # LINECHART COMMAND
     x_years = [2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016]
     #county
     y_1 = ()
@@ -648,13 +651,10 @@ def process_command(command):
 
     # YELP COUNTY
     if processed_command["command"] == "yelp":
-        # if  processed_command["parameter"] == "county":
+        if  processed_command["parameter"] == "state":
             # print("correct command")
-            # yelp_county = "'grocery stores'" + "," + "'" + processed_command["county"] + "'"
+            yelp_county = "'grocery stores'" + "," + "'" + processed_command["county"] + "'"
             # print(yelp_county)
-
-            # str1 = "grocery stores, " + yelp_county
-            # print(str1)
 
             results = pingYelp(processed_command["county"])
             # print(results)
@@ -736,14 +736,8 @@ def interactive_prompt():
             pass
         else:
             print("Command not recognized: ", response)
-#
-# results1 = pingYelp("farmer's market", "washtenaw")
-# results2 = pingYelp("farmer's market")
+            pass
 
-# populate_table(results1)
-# populate_table(results2)
-
-# process_command("yelp state wa Seattle county")
 
 if __name__=="__main__":
     interactive_prompt()
